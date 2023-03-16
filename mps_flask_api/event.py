@@ -34,16 +34,17 @@ def read_all():
 
 def create(event):
     event_id = event.get("event_id")
-    event_title = event.get("title", "")
-    event_body = event.get("title", "")
+    event_title = event.get("event_title", "") 
+    event_body = event.get("event_body", "")
 
 
     if  event_id and event_id  not in EVENT :
         EVENT[event_id] = {
             "event_id": event_id,
-            "event_title": event_title,
-            "event_body": event_body,
+            "title": event_title,
+            "body": event_body,
             "timestamp": get_timestamp(),
+            "active": False
         }
         return EVENT[event_id], 201
     else:
@@ -64,7 +65,9 @@ def read_one(event_id):
 
 def update(event_id, event):
     if event_id in EVENT:
-        EVENT[event_id]["event_title"] = event.get("event_title", EVENT[event_id]["event_title"])
+        EVENT[event_id]["title"] = event.get("event_title", EVENT[event_id]["title"])
+        EVENT[event_id]["body"] = event.get("event_body", EVENT[event_id]["body"])
+
         EVENT[event_id]["timestamp"] = get_timestamp()
         return EVENT[event_id]
     else:
