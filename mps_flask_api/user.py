@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import abort, make_response
+from flask import abort, make_response,jsonify
 
 def get_timestamp():
     return datetime.now().strftime(("%Y-%m-%d %H:%M:%S"))
@@ -23,7 +23,7 @@ USER = {
 }
 
 def read_all():
-    return list(USER.values())
+    return jsonify(list(USER.values()))
 
 
 def create(user):
