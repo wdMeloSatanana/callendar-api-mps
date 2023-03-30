@@ -30,6 +30,10 @@ components:
           type: "string"
         user_id:
           type: "string"
+        password:
+          type: "string"
+        active:
+          type: "integer"
   parameters:
     user_id:
       name: "user_id"
@@ -70,9 +74,23 @@ paths:
             schema:
               x-body-name: "user"
               $ref: "#/components/schemas/User"
+
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                user_name:        
+                  type: string
+                password:   
+                  type: string
+              required:
+                - user_name
+                - password
       responses:
         "201":
           description: "Sucessfully created user"
+ 
+      
 
   /user/{user_id}:
     get:
@@ -114,6 +132,18 @@ paths:
         "204":
           description: "Successfully deleted user"
     
+  /logout:
+    get:
+      tags:
+        - "User"
+      operationId: "user.logout"
+      summary: "Logged out a user"
+      responses:
+        "200":
+          description: "Sucessfully exited session"
+
+ 
+
   /event: 
 
     get:
@@ -130,7 +160,7 @@ paths:
         - "Event"
       summary: "Create a new event"
       requestBody:
-        description: "Evebt to create"
+        description: "Event to create"
         required: true
         content:
           application/json:
@@ -181,4 +211,72 @@ paths:
         "204":
           description: "Successfully deleted event"
 
+  /app:
+    get:
+      tags:
+        - "Blog"
+      operationId: "routes.web_page_index"
+      responses:
+        "200":
+          description: "Returns HTML for the home page"
+          content: 
+            text/html:
+              schema: 
+                type: "string"
+       
+  /app/login:
+    get:
+      operationId: "routes.web_page_login"
+      tags:
+        - "User"
+      summary: "Login page rendered"
+      responses:
+        "200":
+          description: "Successfully successfull rendered login page"
+          content: 
+            text/html:
+              schema: 
+                type: "string"
 
+    post:
+      operationId: "user.login"
+      tags:
+        - "User"
+      summary: "Login user"
+      requestBody:
+        description: "Login params"
+        required: true
+        content:
+          application/json:
+            schema:
+              x-body-name: "user"
+              $ref: "#/components/schemas/User"
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                user_name:        
+                  type: string
+                password:   
+                  type: string
+              required:
+                - user_name
+                - password
+      responses: 
+        "200":
+          description: "Success"
+               
+  /app/register:
+    get:
+      operationId: "routes.web_page_register"
+      tags:
+        - "User"
+      summary: "Register page rendered"
+      responses:
+        "200":
+          description: "Returns HTML for the register page"
+          content: 
+            text/html:
+              schema: 
+                type: "string"
+ 
