@@ -43,12 +43,12 @@ if mydb.is_connected():
     mydb.database=config['DB_NAME']
 
 def get_db():
-    mydb.cursor(dictionary=True)
-    mydb.execute(
+    db = define_db().cursor(dictionary=True)
+    db.execute(
         'SELECT p.id, title, body, created, author_id, username, time'
         ' FROM event p JOIN users u ON p.author_id = u.id'
         ' ORDER BY created DESC')
-    posts = mydb.fetchall()
+    posts = db.fetchall()
     return posts
 
 def define_db():

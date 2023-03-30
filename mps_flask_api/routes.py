@@ -1,12 +1,14 @@
 from flask import (
     Blueprint,render_template, current_app, g)
-import user
+import user, database, calendario
 
 
 def web_page_index():
     print(current_app)
     print(user.session)
-    return render_template('base.html', session=user.session)
+    posts = database.get_db()
+    user.session['data-visualizada'], user.session['mes-visualizado'], user.session['mes-objeto'] = calendario.data_util()
+    return render_template('base.html', posts=posts, session=user.session)
 
 def web_page_create():
     return render_template("events/create.html")

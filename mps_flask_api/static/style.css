@@ -1,0 +1,19 @@
+body {
+    background-color: rgb(212, 226, 255);
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    margin:auto;
+}
+
+nav {
+    background-color: lightblue;
+    width:100%;
+    height: 6rem;
+    display: block;
+}
+
+h1, ul , section{
+    margin: auto;
+    display: block;
+}
