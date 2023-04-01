@@ -1,6 +1,6 @@
 import mysql.connector
 
-from flask import g
+from flask import g, abort
 from dotenv import dotenv_values
 
 config = dotenv_values("../.env")
@@ -61,6 +61,23 @@ def define_db():
     )
     return g.db
 
+def get_event(id):
+    cursor = define_db().cursor(dictionary=True)
+    cursor.execute(
+        'SELECT p.id, title, body, created, author_id, username'
+        ' FROM event p JOIN users u ON p.author_id = u.id'
+        ' WHERE p.id = %s',
+        (id,)
+    )
+    event = cursor.fetchone()
+
+    if event is None:
+        abort(404, f"Evemt id {id} doesn't exist.")
+
+    if event['author_id'] != g.user['id']:
+        abort(403)
+
+    return event
 
 if mydb.is_connected():
     cursor.close()

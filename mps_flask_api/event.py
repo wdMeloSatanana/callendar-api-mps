@@ -1,90 +1,128 @@
 from datetime import datetime
-from flask import abort, make_response,jsonify
+from flask import abort,jsonify, request, flash, redirect, url_for
+import user
+from database import define_db, get_db
 
-def get_timestamp():
-    return datetime.now().strftime(("%Y-%m-%d %H:%M:%S"))
 
-EVENT = {
-    "1000": {
-        "title": "New Light",
-        "event_id": "1000",
-        "body": "Introduction quest",
-        "timestamp": get_timestamp(),
-        "active": False
-    },
-    "2000": {
-        "title": "Old Light",
-        "event_id": "2000",
-        "body": "Raid Quest",
-        "timestamp": get_timestamp(),
-        "active": False
-    },
-    "3000": {
-        "title": "Faded Light",
-        "event_id": "3000",
-        "body": "Endgame grinding",
-        "timestamp": get_timestamp(),
-        "active": True
-    }
-}
 
 def read_all():
-    return jsonify(list(EVENT.values()))
+    all_posts = jsonify(get_db())
+    return all_posts
 
 
 def create(event):
-    event_id = event.get("event_id")
-    event_title = event.get("event_title", "") 
+    event_title = event.get("event_title", "")
     event_body = event.get("event_body", "")
+    event_timestamp = event.get("timestamp", "")
+    event_author_id = event.get("author_id", "")
 
+    db = define_db()
+    try:
+        db.cursor(dictionary=True).execute(
+            'INSERT INTO event (title, body, author_id, time)'
+            ' VALUES (%s, %s, %s, %s)',
+            (event_title, event_body, event_author_id, event_timestamp),
+        )
+        db.commit()
 
-    if  event_id and event_id  not in EVENT :
-        EVENT[event_id] = {
-            "event_id": event_id,
-            "title": event_title,
-            "body": event_body,
-            "timestamp": get_timestamp(),
-            "active": False
-        }
-        return EVENT[event_id], 201
-    else:
+        return 201
+    except Exception as e:
+        print(e)
         abort(
             406,
-            f"Event with id {event_id} already exists",
+            f"Event with title {event_title} failed",
         )
+
+
+
+
+def create_form():
+    if request.method == 'POST':
+        title = request.form['title']
+        body = request.form['body']
+        timestamp  = request.form['time']
+        timestamp = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M')
+        timestamp = timestamp.strftime("%Y-%m-%d %H:%M:00")
+        error = None
+
+        if not title:
+            error = 'Title is required.'
+
+        if error is not None:
+            flash(error)
+        else:
+            db = define_db()
+            db.cursor(dictionary=True).execute(
+                'INSERT INTO event (title, body, author_id, time)'
+                ' VALUES (%s, %s, %s, %s)',
+                (title, body, user.session['user_id'], timestamp),
+            )
+            db.commit()
+            return redirect(url_for('/api.routes_web_page_index'))
+
+
 
 
 def read_one(event_id):
-    if event_id in EVENT:
-        return EVENT[event_id]
-    else:
-        abort(
-            404, f"Event with ID {event_id} not found"
+    db = define_db().cursor(dictionary=True)
+    error = None
+    try:
+        event = db.execute(
+            'SELECT * FROM event WHERE id = %s ', (event_id,)
         )
+        event = db.fetchone()
+    except Exception as e:
+        print(e)
+        error = e
+        abort(
+            404, f"Error: {error}"
+        )
+
+    if event:
+        return event
 
 
 def update(event_id, event):
-    if event_id in EVENT:
-        EVENT[event_id]["title"] = event.get("event_title", EVENT[event_id]["title"])
-        EVENT[event_id]["body"] = event.get("event_body", EVENT[event_id]["body"])
+    event_title = event.get("event_title", "")
+    event_body = event.get("event_body", "")
+    event_timestamp = event.get("timestamp", "")
+    event_author_id = event.get("author_id", "")
+    error = None
+    eventDB = read_one( event_id)
 
-        EVENT[event_id]["timestamp"] = get_timestamp()
-        return EVENT[event_id]
-    else:
+
+    if str(eventDB['author_id']) != event_author_id:
+        error = "Different ID"
+    
+    if error is not None:
         abort(
-            404,
-            f"Event with ID {event_id} not found"
+            404, f"{error}"
         )
+    else:
+        try:
+            db = define_db()
+            db.cursor().execute(
+            'UPDATE event SET title = %s, body = %s, time = %s '
+            ' WHERE id = %s',
+            (event_title, event_body, event_timestamp, event_id)
+            )
+            db.commit()
+        except Exception as e:
+            print(e)
+        
+            
+        return event
+
+
 
 
 def delete(event_id):
-    if event_id in EVENT:
-        del EVENT[event_id]
-        return make_response(
-            f"{event_id} successfully deleted", 200
-        )
-    else:
-        abort(
-            404,
-            f"Event with ID {event_id} not found"
-        )
+    event = read_one(event_id)
+    db = define_db()
+    try:
+        db.cursor().execute('DELETE FROM event WHERE id = %s', (event_id,))
+        db.commit()
+    except Exception as e:
+        print(e)
+
+    return event

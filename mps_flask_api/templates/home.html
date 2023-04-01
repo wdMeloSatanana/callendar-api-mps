@@ -2,13 +2,19 @@
 
 {% block header %}
   <h1>{% block title %}Callendar{% endblock %}</h1>
-  {% if session['user_name'] %}
-    <a class="action" href="{{ url_for('/api.route_web_page_create') }}">New</a>
+  {% if 'user_name' in session %}
+    <a class="action" href="{{ url_for('/api.routes_web_page_create') }}">New</a>
   {% endif %}
 {% endblock %}
 
 {% block content %}
-  {% for post in posts %}
-
+  <div id="callendar-box"> 
+  {% for day in month %}
+    <div class="days"> 
+      <a href="#">
+        <p>{{ day }} </p>
+      </a>
+    </div>
   {% endfor %}
+  </div>
 {% endblock %}

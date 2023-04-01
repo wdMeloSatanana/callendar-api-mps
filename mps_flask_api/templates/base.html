@@ -2,11 +2,9 @@
 <title>{% block title %}{% endblock %} - Agenda</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <nav>
-  <h1>Agenda</h1>
-  <ul>
+   <ul>
          
-        {% if 'user_name' in session %}
-                
+        {% if 'user_name' in session %}   
             <li><span>{{ session['user_name'] }}</span>
             <li><a href="{{ url_for('/api.user_logout') }}">Log Out</a>
         {% else %}
@@ -23,3 +21,5 @@
  
   {% block content %}{% endblock %}
 </section>
+
+<script type="text/javascript" src="{{ url_for('static', filename='index.js') }}"></script>

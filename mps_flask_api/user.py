@@ -1,45 +1,34 @@
 from datetime import datetime
 from werkzeug.security import check_password_hash, generate_password_hash
-from flask import flash,abort, make_response,jsonify, redirect, url_for, request,g
-import database
-import json 
+from flask import flash,abort ,jsonify, redirect, url_for, request,g
+from database import define_db, get_db
 
-def get_timestamp():
-    return datetime.now().strftime(("%Y-%m-%d %H:%M:%S"))
 
-USER = {
-    "1000": {
-        "user_name": "Caio Rolando da Rocha",
-        "user_id": "1000",
-        "timestamp": get_timestamp(),
-    },
-    "2000": {
-        "user_name": "Jucimar Maia da Silva Jr",
-        "user_id": "2000",
-        "timestamp": get_timestamp(),
-    },
-    "3000": {
-        "user_name": "Cthonem Martins",
-        "user_id": "3000",
-        "timestamp": get_timestamp(),
-    }
-}
+def session_init():
+    if 'session' not in globals():
+        session = {}
+        return session
+    else:
+        return globals()['session']
 
-session = USER['1000']
-
+session = session_init()
 
 def read_all():
-    return jsonify(list(USER.values()))
+    db = define_db().cursor(dictionary=True)
+    db.execute(
+        'SELECT * FROM users')
+    users = db.fetchall()
+    return jsonify(users)
 
 
 def create(user):
-    
- 
+    # It is using only a html form to create an user
+
     if request.method == 'POST':
         user_name = request.form['user_name']
         password = request.form['password']
         print(f"{user_name} + {password}" )
-        g.db = database.define_db()
+        g.db = define_db()
         db = g.db
         error = None 
 
@@ -51,6 +40,8 @@ def create(user):
                 )
                 db.commit()
                 print("Success")
+                session['user_id'] = user['id']
+                session['user_name'] = user['username']
             except:
                 error = f"Usuário {user_name} já registrado."
                 print(error)
@@ -59,44 +50,66 @@ def create(user):
             
 
 def read_one(user_id):
-    if user_id in USER:
-        return USER[user_id]
-    else:
+    try:
+        db = define_db().cursor(dictionary=True)
+        db.execute(
+            'SELECT * FROM users WHERE id = %s', (user_id,))
+        user = db.fetchone()
+    except Exception as e:
+        print(e)
         abort(
-            404, f"Person with ID {user_id} not found"
+            404, f"Error: {e}"
         )
-
+    if user:
+        return user
 
 def update(user_id, user):
-    if user_id in USER:
-        USER[user_id]["user_name"] = user.get("user_name", USER[user_id]["user_name"])
-        USER[user_id]["timestamp"] = get_timestamp()
-        return USER[user_id]
-    else:
+    user_name = user.get("user_name", "")
+    user_password = user.get("user_password", "")
+    error = None
+    userDB = read_one(user_id)
+
+    print(userDB)
+
+    if str(userDB['id']) != user_id:
+        error = "Different IDs"
+    
+    if error is not None:
         abort(
-            404,
-            f"Person with ID {user_id} not found"
+            404, f"{error}"
         )
+    else:
+        try:
+            db = define_db()
+            db.cursor().execute(
+            'UPDATE users SET username = %s, password = %s '
+            ' WHERE id = %s',
+            (user_name, generate_password_hash(user_password), user_id)
+            )
+            db.commit()
+        except Exception as e:
+            print(e)
+        
+            
+        return user
+
 
 
 def delete(user_id):
-    if user_id in USER:
-        del USER[user_id]
-        return make_response(
-            f"{user_id} successfully deleted", 200
-        )
-    else:
-        abort(
-            404,
-            f"Person with ID {user_id} not found"
-        )
+    event = read_one(user_id)
+    db = define_db()
+    try:
+        db.cursor().execute('DELETE FROM users WHERE id = %s', (user_id,))
+        db.commit()
+    except Exception as e:
+        print(e)
 
-
+    return event
 def login():
     if request.method == 'POST':
         username = request.form['user_name']
         password = request.form['password']
-        db = database.define_db().cursor(dictionary=True)
+        db = define_db().cursor(dictionary=True)
         error = None
         user = db.execute(
             'SELECT * FROM users WHERE username = %s ', (username,)

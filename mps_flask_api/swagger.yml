@@ -20,7 +20,13 @@ components:
           type: "string"    
         event_id:
           type: "string"
-  
+        author_id:
+          type: "string"
+        timestamp:
+          type: "string"
+
+
+
     User:
       type: "object"
       required:
@@ -280,3 +286,45 @@ paths:
               schema: 
                 type: "string"
  
+  /app/create:
+    get:
+      operationId: "routes.web_page_create"
+      tags:
+        - "User"
+      summary: "Register page rendered"
+      responses:
+        "200":
+          description: "Returns HTML for the register page"
+          content: 
+            text/html:
+              schema: 
+                type: "string"
+
+    post:
+      operationId: "event.create_form"
+      tags:
+        - "Event"
+      summary: "Creating event"
+      requestBody:
+        description: "Event params"
+        required: true
+        content:
+          application/json:
+            schema:
+              x-body-name: "user"
+              $ref: "#/components/schemas/Event"
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                user_name:        
+                  type: string
+                password:   
+                  type: string
+              required:
+                - event_title
+                - event_body
+ 
+      responses: 
+        "200":
+          description: "Event creation success"
