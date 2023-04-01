@@ -8,3 +8,5 @@ Projeto individual para a matéria de Modelagem e Projeto de Sistemas da UEA
 ### Doc
 <a href="https://wdmelosatanana.github.io/Agenda-App/">Documentação</a> 
 
+### Endpoints
+![img](https://github.com/wdMeloSatanana/callendar-api-mps/blob/main/images/Untitled.png?raw=true)
