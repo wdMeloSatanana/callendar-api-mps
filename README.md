@@ -2,7 +2,7 @@
 Projeto individual para a matéria de Modelagem e Projeto de Sistemas da UEA
 
 ### Landing Page
-<a href="https://agenda-mps.my.canva.site/">Documentação</a> 
+<a href="https://agenda-mps.my.canva.site/">Landing Page</a> 
 
 
 ### Doc
